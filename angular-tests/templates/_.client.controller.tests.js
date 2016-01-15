@@ -1,11 +1,11 @@
 'use strict';
 
 (function() {
-  // <%= humanizedNgControllerName %> Controller Spec
-  describe('<%= humanizedNgControllerName %> Controller Tests', function() {
+  // <%= humanizedControllerName %> Controller Spec
+  describe('<%= humanizedControllerName %> Controller Tests', function() {
     // Initialize global variables
-    var <%= classifiedNgControllerName %>Controller,
-      scope,
+    var <%= classifiedControllerName %>Controller,
+      $scope,
       $httpBackend,
       $stateParams,
       $location;
@@ -37,16 +37,16 @@
     // with the same name as the service.
     beforeEach(inject(function($controller, $rootScope, _$location_, _$stateParams_, _$httpBackend_) {
       // Set a new global scope
-      scope = $rootScope.$new();
+      $scope = $rootScope.$new();
 
       // Point global variables to injected services
       $stateParams = _$stateParams_;
       $httpBackend = _$httpBackend_;
       $location = _$location_;
 
-      // Initialize the <%= humanizedNgControllerName %> controller.
-      <%= classifiedNgControllerName %>Controller = $controller('<%= classifiedNgControllerName %>Controller', {
-        $scope: scope
+      // Initialize the <%= humanizedControllerName %> controller.
+      <%= classifiedControllerName %>Controller = $controller('<%= classifiedControllerName %>Controller', {
+        $scope: $scope
       });
     }));
 

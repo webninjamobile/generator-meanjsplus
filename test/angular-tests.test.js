@@ -5,7 +5,7 @@ var path = require('path'),
   assert = require('yeoman-generator').assert,
   temp = require('temp').track();
 
-describe('Express Sub Generators Tests', function () {
+describe('AngularJS Sub Generators Tests', function () {
   this.timeout(0);
   /**
    * Setup the temp directory
@@ -21,9 +21,10 @@ describe('Express Sub Generators Tests', function () {
     temp.cleanup();
   });
 
-  describe('Generate an express route through the sub-generator', function () {
+  describe('Generate an AngularJS controller with tests through the sub-generator', function () {
     beforeEach(function (done) {
-      helpers.run(path.join(__dirname, '../express-route'))
+
+      helpers.run(path.join(__dirname, '../angular-tests'))
         .withOptions({
           'skip-install': true
         })
@@ -39,14 +40,17 @@ describe('Express Sub Generators Tests', function () {
         });
     });
 
-    it('should generate an express route file', function () {
-      assert.file('modules/core/server/routes/foo.server.routes.js');
+    it('should generate an angular controller and tests file', function (done) {
+      assert.file('modules/core/client/controllers/foo.client.controller.js');
+      assert.file('modules/core/tests/client/foo.client.controller.tests.js');
+      done();
     });
   });
 
-  describe('Generate an express route through the sub-generator (no name specified)', function () {
+  describe('Generate an AngularJS controller with tests through the sub-generator (no name specified)', function () {
     beforeEach(function (done) {
-      helpers.run(path.join(__dirname, '../express-route'))
+
+      helpers.run(path.join(__dirname, '../angular-tests'))
         .withOptions({
           'skip-install': true
         })
@@ -61,8 +65,10 @@ describe('Express Sub Generators Tests', function () {
         });
     });
 
-    it('should generate an express route file with the same name as module has', function () {
-      assert.file('modules/core/server/routes/core.server.routes.js');
+    it('should generate an angular controller and tests file', function (done) {
+      assert.file('modules/core/client/controllers/core.client.controller.js');
+      assert.file('modules/core/tests/client/core.client.controller.tests.js');
+      done();
     });
   });
 });

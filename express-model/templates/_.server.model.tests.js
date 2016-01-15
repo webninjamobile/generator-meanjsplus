@@ -27,10 +27,10 @@ describe('<%= humanizedModelName %> Model Unit Tests:', function() {
       password: 'password'
     });
 
-    user.save(function() {
+    user.save(function() { 
       <%= camelizedModelName %> = new <%= classifiedModelName %>({
-          // Add model fields
-          // ...
+        // Add model fields
+        // ...
       });
 
       done();
@@ -46,7 +46,7 @@ describe('<%= humanizedModelName %> Model Unit Tests:', function() {
     });
   });
 
-  afterEach(function(done) {
+  afterEach(function(done) { 
     <%= classifiedModelName %>.remove().exec();
     User.remove().exec();
 

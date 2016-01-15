@@ -1,45 +1,55 @@
 'use strict';
 
-var yeoman = require('yeoman-generator'),
+var fs = require('fs'),
   s = require('underscore.string'),
-  inflections = require('underscore.inflections'),
-  modulesHelper = require('../utilities/modules.helper');
+  yeoman = require('yeoman-generator');
 
-var ConfigGenerator = yeoman.generators.NamedBase.extend({
-
-  init: function () {
-    this.slugifiedNgConfigName = s.slugify(s.humanize(this.name));
-    this.classifiedNgConfigName = s.classify(this.slugifiedNgConfigName);
-    this.humanizedNgConfigName = s.humanize(this.slugifiedNgConfigName);
-    this.slugifiedPluralName = inflections.pluralize(this.slugifiedNgConfigName);
-    this.availableModuleChoices = modulesHelper.constructListOfModuleChoices(this.slugifiedNgConfigName);
-    if (this.availableModuleChoices == null)
-      this.env.error('No modules found!');
-  },
+var ConfigGenerator = yeoman.generators.Base.extend({
   askForModuleName: function () {
+    var modulesFolder = process.cwd() + '/modules/';
     var done = this.async();
+
     var prompts = [{
       type: 'list',
       name: 'moduleName',
       default: 'core',
       message: 'Which module does this configuration file belongs to?',
-      choices: this.availableModuleChoices
+      choices: []
+    },{
+      type: 'input',
+      name: 'name',
+      default: '',
+      message: 'What is the name of the config (leave it blank to inherit it from module)?'
     }];
+
+    if (fs.existsSync(modulesFolder)) {
+      fs.readdirSync(modulesFolder).forEach(function (folder) {
+        var stat = fs.statSync(modulesFolder + '/' + folder);
+
+        if (stat.isDirectory()) {
+          prompts[0].choices.push({
+            value: folder,
+            name: folder
+          });
+        }
+      });
+    }
 
     this.prompt(prompts, function (props) {
       this.moduleName = props.moduleName;
-      this.slugifiedModuleName = s.slugify(s.humanize(this.moduleName));
+      this.name = props.name || this.moduleName;
+
+      this.slugifiedModuleName = s(this.moduleName).humanize().slugify().value();
+      this.humanizedModuleName = s(this.moduleName).humanize().value();
+
+      this.slugifiedName = s(this.name).slugify().value();
 
       done();
     }.bind(this));
   },
-  setViewTemplateVariables: function () {
-    /* Variables set in this method should be only those variables exclusively used inside the correlated templates */
-    this.humanizedModuleName = s.humanize(this.moduleName);
-  },
 
   renderConfigFile: function () {
-    this.template('_.client.config.js', 'modules/' + this.slugifiedModuleName + '/client/config/' + this.slugifiedPluralName + '.client.config.js')
+    this.template('_.client.config.js', 'modules/' + this.slugifiedModuleName + '/client/config/' + this.slugifiedName + '.client.config.js')
   }
 });
 

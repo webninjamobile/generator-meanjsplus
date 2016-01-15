@@ -1,40 +1,57 @@
 'use strict';
 
 var path = require('path'),
-  fs = require('fs-extra'),
   helpers = require('yeoman-generator').test,
   assert = require('yeoman-generator').assert,
-  tempDir,
   temp = require('temp').track();
 
-describe('Angular Controller Subgenerator', function () {
+describe('AngularJS Sub Generators Tests', function () {
   this.timeout(0);
   /**
    * Setup the temp directory
    */
   before(function (done) {
-    helpers.testDirectory(path.join(__dirname, 'temp/modules/core'), done);
+    helpers.testDirectory(path.join(__dirname, 'temp'), done);
   });
 
   /**
    * Clean up temp directory
    */
   after(function () {
-    fs.removeSync(tempDir);
-    fs.removeSync(path.join(__dirname, 'temp'));
+    temp.cleanup();
   });
 
-  describe('Generate an Angular Controller file', function () {
+  describe('Generate an AngularJS controller with tests through the sub-generator', function () {
     beforeEach(function (done) {
       helpers.run(path.join(__dirname, '../angular-controller'))
-        .inTmpDir(function (dir) {
-          tempDir = dir;
-          fs.copySync(path.join(__dirname, 'temp'), dir)
-        })
         .withOptions({
           'skip-install': true
         })
-        .withArguments(['foo'])
+        .withPrompts({
+          'moduleName': 'core',
+          'name': 'foo'
+        })
+        .on('ready', function (generator) {
+          // this is called right before `generator.run()` is called
+        })
+        .on('end', function () {
+          done();
+        });
+    });
+
+    it('should generate an angular controller file', function (done) {
+      assert.file('modules/core/client/controllers/foo.client.controller.js');
+      assert.file('modules/core/tests/client/foo.client.controller.tests.js');
+      done();
+    });
+  });
+
+  describe('Generate an AngularJS controller with tests through the sub-generator (no name specified)', function () {
+    beforeEach(function (done) {
+      helpers.run(path.join(__dirname, '../angular-controller'))
+        .withOptions({
+          'skip-install': true
+        })
         .withPrompts({
           'moduleName': 'core'
         })
@@ -46,14 +63,11 @@ describe('Angular Controller Subgenerator', function () {
         });
     });
 
-    it('should generate an angular controller', function () {
-      assert.file(tempDir+'/modules/core/client/controllers/foos.client.controller.js');
+    it('should generate an angular controller file', function (done) {
+      assert.file('modules/core/client/controllers/core.client.controller.js');
+      assert.file('modules/core/tests/client/core.client.controller.tests.js');
+      done();
     });
-
-    it('should generate an angular controller test file', function () {
-      assert.file(tempDir+'/modules/core/client/tests/foos.client.controller.test.js');
-    });
-
-
   });
 });
+

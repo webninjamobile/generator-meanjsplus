@@ -21,9 +21,9 @@ describe('Express Sub Generators Tests', function () {
     temp.cleanup();
   });
 
-  describe('Generate an express route through the sub-generator', function () {
+  describe('Generate an express tests through the sub-generator', function () {
     beforeEach(function (done) {
-      helpers.run(path.join(__dirname, '../express-route'))
+      helpers.run(path.join(__dirname, '../express-tests'))
         .withOptions({
           'skip-install': true
         })
@@ -40,13 +40,14 @@ describe('Express Sub Generators Tests', function () {
     });
 
     it('should generate an express route file', function () {
-      assert.file('modules/core/server/routes/foo.server.routes.js');
+      assert.file('modules/core/server/models/foo.server.model.js');
+      assert.file('modules/core/tests/server/foo.server.model.tests.js');
     });
   });
 
-  describe('Generate an express route through the sub-generator (no name specified)', function () {
+  describe('Generate an express tests through the sub-generator (no name specified)', function () {
     beforeEach(function (done) {
-      helpers.run(path.join(__dirname, '../express-route'))
+      helpers.run(path.join(__dirname, '../express-tests'))
         .withOptions({
           'skip-install': true
         })
@@ -61,8 +62,9 @@ describe('Express Sub Generators Tests', function () {
         });
     });
 
-    it('should generate an express route file with the same name as module has', function () {
-      assert.file('modules/core/server/routes/core.server.routes.js');
+    it('should generate an express route file', function () {
+      assert.file('modules/core/server/models/core.server.model.js');
+      assert.file('modules/core/tests/server/core.server.model.tests.js');
     });
   });
 });

@@ -1,21 +1,12 @@
 'use strict';
 
-var util = require('util'),
-  fs = require('fs'),
+var fs = require('fs'),
   s = require('underscore.string'),
-  yeoman = require('yeoman-generator'),
-  inflections = require('underscore.inflections'),
-  modulesHelper = require('../utilities/modules.helper');
+  yeoman = require('yeoman-generator');
 
-var ServiceGenerator = yeoman.generators.NamedBase.extend({
-  init: function () {
-    this.slugifiedNgServiceName = s.slugify(s.humanize(this.name));
-    this.slugifiedPluralName = inflections.pluralize(this.slugifiedNgServiceName);
-    this.availableModuleChoices = modulesHelper.constructListOfModuleChoices(this.slugifiedNgServiceName);
-    if (this.availableModuleChoices == null)
-      this.env.error('No modules found!');
-  },
+var ServiceGenerator = yeoman.generators.Base.extend({
   askForModuleName: function () {
+    var modulesFolder = process.cwd() + '/modules/';
     var done = this.async();
 
     var prompts = [{
@@ -23,26 +14,45 @@ var ServiceGenerator = yeoman.generators.NamedBase.extend({
       name: 'moduleName',
       default: 'core',
       message: 'Which module does this service belongs to?',
-      choices: this.availableModuleChoices
+      choices: []
+    },{
+      type: 'input',
+      name: 'name',
+      default: '',
+      message: 'What is the name of the service (leave it blank to inherit it from module)?'
     }];
 
+    // Add module choices
+    if (fs.existsSync(modulesFolder)) {
+
+      fs.readdirSync(modulesFolder).forEach(function (folder) {
+        var stat = fs.statSync(modulesFolder + '/' + folder);
+
+        if (stat.isDirectory()) {
+          prompts[0].choices.push({
+            value: folder,
+            name: folder
+          });
+        }
+      });
+    }
 
     this.prompt(prompts, function (props) {
       this.moduleName = props.moduleName;
+      this.name = props.name || this.moduleName;
 
-      this.slugifiedModuleName = s.slugify(this.moduleName);
+      this.slugifiedModuleName = s(this.moduleName).humanize().slugify().value();
+
+      this.slugifiedName = s(this.name).slugify().value();
+      this.classifiedName = s(this.slugifiedName).classify().value();
+      this.humanizedName = s(this.slugifiedName).humanize().value();
 
       done();
     }.bind(this));
   },
-  setViewTemplateVariables: function () {
-    /* Variables set in this method should be only those variables exclusively used inside the correlated templates */
-    this.classifiedNgServiceName = s.classify(this.slugifiedNgServiceName);
-    this.humanizedNgServiceName = s.humanize(this.slugifiedNgServiceName);
-  },
+
   renderServiceFile: function () {
-    this.template('_.client.service.js', 'modules/' + this.slugifiedModuleName
-      + '/client/services/' + this.slugifiedPluralName + '.client.service.js')
+    this.template('_.client.service.js', 'modules/' + this.slugifiedModuleName + '/client/services/' + this.slugifiedName + '.client.service.js')
   }
 });
 

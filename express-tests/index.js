@@ -1,12 +1,11 @@
 'use strict';
 
-var fs = require('fs'),
+var s = require('underscore.string'),
   inflections = require('underscore.inflections'),
-  s = require('underscore.string'),
+  fs = require('fs'),
   yeoman = require('yeoman-generator');
 
-
-var ModelGenerator = yeoman.generators.Base.extend({
+var TestGenerator = yeoman.generators.Base.extend({
   askForModuleName: function () {
     var modulesFolder = process.cwd() + '/modules/';
     var done = this.async();
@@ -21,7 +20,7 @@ var ModelGenerator = yeoman.generators.Base.extend({
       type: 'input',
       name: 'name',
       default: '',
-      message: 'What is the name of the model (leave it blank to inherit it from module)?'
+      message: 'What is the name of the tests (leave it blank to inherit it from module)?'
     }];
 
     // Add module choices
@@ -56,13 +55,16 @@ var ModelGenerator = yeoman.generators.Base.extend({
       done();
     }.bind(this));
   },
+  renderTestsFile: function () {
+    var modelFilePath = process.cwd() + '/modules/' + this.slugifiedModuleName + '/server/models/' + this.slugifiedModelName + '.server.model.js';
 
-  createModelFile: function () {
-    // We create the model file
-    this.template('_.server.model.js', 'modules/' + this.slugifiedModuleName + '/server/models/' + this.slugifiedModelName + '.server.model.js');
-    // We create the test file for the models
-    this.template('_.server.model.tests.js', 'modules/' + this.slugifiedModuleName + '/tests/server/' + this.slugifiedModelName + '.server.model.tests.js');
+    // If model file exists we create a test for it otherwise we will first create a model
+    if (!fs.existsSync(modelFilePath)) {
+      this.template('_.server.model.js', 'modules/' + this.slugifiedModuleName + '/server/models/' + this.slugifiedModelName + '.server.model.js')
+    }
+
+    this.template('_.server.model.tests.js', 'modules/' + this.slugifiedModuleName + '/tests/server/' + this.slugifiedModelName + '.server.model.tests.js')
   }
 });
 
-module.exports = ModelGenerator;
+module.exports = TestGenerator;

@@ -1,21 +1,13 @@
 'use strict';
 
-var util = require('util'),
-  fs = require('fs'),
-  yeoman = require('yeoman-generator'),
+var fs = require('fs'),
   s = require('underscore.string'),
+  yeoman = require('yeoman-generator');
 
-  modulesHelper = require('../utilities/modules.helper');
 
-var FilterGenerator = yeoman.generators.NamedBase.extend({
-  init: function () {
-    this.slugifiedNgFilterName = s.slugify(s.humanize(this.name));
-
-    this.availableModuleChoices = modulesHelper.constructListOfModuleChoices(this.slugifiedNgFilterName);
-    if (this.availableModuleChoices == null)
-      this.env.error('No modules found!');
-  },
+var FilterGenerator = yeoman.generators.Base.extend({
   askForModuleName: function () {
+    var modulesFolder = process.cwd() + '/modules/';
     var done = this.async();
 
     var prompts = [{
@@ -23,24 +15,45 @@ var FilterGenerator = yeoman.generators.NamedBase.extend({
       name: 'moduleName',
       default: 'core',
       message: 'Which module does this filter belongs to?',
-      choices: this.availableModuleChoices
+      choices: []
+    },{
+      type: 'input',
+      name: 'name',
+      default: '',
+      message: 'What is the name of the filter (leave it blank to inherit it from module)?'
     }];
+
+    // Add module choices
+    if (fs.existsSync(modulesFolder)) {
+
+      fs.readdirSync(modulesFolder).forEach(function (folder) {
+        var stat = fs.statSync(modulesFolder + '/' + folder);
+
+        if (stat.isDirectory()) {
+          prompts[0].choices.push({
+            value: folder,
+            name: folder
+          });
+        }
+      });
+    }
 
     this.prompt(prompts, function (props) {
       this.moduleName = props.moduleName;
-      this.slugifiedModuleName = s.slugify(this.moduleName);
+      this.name = props.name || this.moduleName;
+
+      this.slugifiedModuleName = s(this.moduleName).slugify().value();
+
+      this.slugifiedName = s(this.name).humanize().slugify().value();
+      this.camelizedName = s(this.slugifiedName).camelize().value();
+      this.humanizedName = s(this.slugifiedName).humanize().value();
 
       done();
     }.bind(this));
   },
-  setViewTemplateVariables: function () {
-    /* Variables set in this method should be only those variables exclusively used inside the correlated templates */
-    this.humanizedNgFilterName = s.humanize(this.slugifiedNgFilterName);
-    this.camelizedNgFilterName = s.humanize(this.slugifiedNgFilterName);
-  },
+
   renderFilterFile: function () {
-    this.template('_.client.filter.js', 'modules/' + this.slugifiedModuleName
-      + '/client/filters/' + this.slugifiedNgFilterName + '.client.filter.js')
+    this.template('_.client.filter.js', 'modules/' + this.slugifiedModuleName + '/client/filters/' + this.slugifiedName + '.client.filter.js')
   }
 });
 

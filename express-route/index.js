@@ -1,34 +1,55 @@
 'use strict';
-var yeoman = require('yeoman-generator'),
-  s = require('underscore.string'),
-  inflections = require('underscore.inflections'),
-  modulesHelper = require('../utilities/modules.helper');
 
-var RouteGenerator = yeoman.generators.NamedBase.extend({
-  createRouteFile: function () {
-    this.slugifiedRouteName = s.slugify(s.humanize(this.name));
-    this.slugifiedPluralName = inflections.pluralize(this.slugifiedRouteName);
-    this.availableModuleChoices = modulesHelper.constructListOfModuleChoices(this.slugifiedRouteName);
-    if (this.availableModuleChoices == null)
-      this.env.error('No modules found!');
-  },
-  askForModule: function () {
+var fs = require('fs'),
+  s = require('underscore.string'),
+  yeoman = require('yeoman-generator');
+
+var RouteGenerator = yeoman.generators.Base.extend({
+  askForModuleName: function () {
+    var modulesFolder = process.cwd() + '/modules/';
     var done = this.async();
 
     var prompts = [{
       type: 'list',
       name: 'moduleName',
-      message: 'Which module would you like to add this route to?',
-      choices: this.availableModuleChoices
+      default: 'core',
+      message: 'Which module does this route belongs to?',
+      choices: []
+    },{
+      type: 'input',
+      name: 'name',
+      default: '',
+      message: 'What is the name of the route (leave it blank to inherit it from module)?'
     }];
 
+    // Add module choices
+    if (fs.existsSync(modulesFolder)) {
+
+      fs.readdirSync(modulesFolder).forEach(function (folder) {
+        var stat = fs.statSync(modulesFolder + '/' + folder);
+
+        if (stat.isDirectory()) {
+          prompts[0].choices.push({
+            value: folder,
+            name: folder
+          });
+        }
+      });
+    }
+
     this.prompt(prompts, function (props) {
-      this.moduleChoice = props.moduleName || this.slugifiedRouteName;
+      this.moduleName = props.moduleName;
+      this.name = props.name || this.moduleName;
+
+      this.slugifiedModuleName = s(this.moduleName).slugify().value();
+      this.slugifiedName = s(this.name).humanize().slugify().value();
+
       done();
     }.bind(this));
   },
-  renderTemplate: function () {
-    this.template('_.server.routes.js', 'modules/' + this.moduleChoice + '/server/routes/' + this.slugifiedPluralName + '.server.routes.js');
+
+  createRouteFile: function () {
+    this.template('_.server.routes.js', 'modules/' + this.slugifiedModuleName + '/server/routes/' + this.slugifiedName + '.server.routes.js')
   }
 });
 
